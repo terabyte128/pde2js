@@ -48,7 +48,7 @@ public class SourcePrinter {
         this(new PrettyPrinterConfiguration());
     }
 
-    SourcePrinter(final PrettyPrinterConfiguration configuration) {
+    public SourcePrinter(final PrettyPrinterConfiguration configuration) {
         indentation = configuration.getIndent();
         endOfLineCharacter = configuration.getEndOfLineCharacter();
         tabWidth = configuration.getTabWidth();

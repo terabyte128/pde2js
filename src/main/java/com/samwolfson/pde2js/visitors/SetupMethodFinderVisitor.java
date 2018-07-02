@@ -1,6 +1,7 @@
-package com.samwolfson.pde2js;
+package com.samwolfson.pde2js.visitors;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import java.util.Optional;

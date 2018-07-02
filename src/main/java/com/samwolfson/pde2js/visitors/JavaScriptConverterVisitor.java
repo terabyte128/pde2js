@@ -19,7 +19,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-package com.samwolfson.pde2js;
+package com.samwolfson.pde2js.visitors;
 
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.*;
@@ -38,6 +38,7 @@ import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.visitor.Visitable;
 import com.github.javaparser.ast.visitor.VoidVisitor;
 import com.github.javaparser.printer.PrettyPrinterConfiguration;
+import com.samwolfson.pde2js.SourcePrinter;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -472,7 +473,7 @@ public class JavaScriptConverterVisitor implements VoidVisitor<Void> {
     @Override
     public void visit(final ArrayInitializerExpr n, final Void arg) {
         printComment(n.getComment(), arg);
-        printer.print("{");
+        printer.print("[");
         if (!isNullOrEmpty(n.getValues())) {
             printer.print(" ");
             for (final Iterator<Expression> i = n.getValues().iterator(); i.hasNext(); ) {
@@ -485,7 +486,7 @@ public class JavaScriptConverterVisitor implements VoidVisitor<Void> {
             printer.print(" ");
         }
         printOrphanCommentsEnding(n);
-        printer.print("}");
+        printer.print("]");
     }
 
     @Override
@@ -514,11 +515,16 @@ public class JavaScriptConverterVisitor implements VoidVisitor<Void> {
     @Override
     public void visit(final ArrayCreationExpr n, final Void arg) {
         printComment(n.getComment(), arg);
-        printer.print("new ");
-        n.getElementType().accept(this, arg);
-        for (ArrayCreationLevel level : n.getLevels()) {
-            level.accept(this, arg);
+        printer.print("new Array");
+
+        if (n.getLevels().size() != 1) {
+            throw new IllegalArgumentException("JS does not support multi-level arrays");
         }
+
+        printer.print("(");
+        n.getLevels().get(0).getDimension().ifPresent(d -> d.accept(this, null));
+        printer.print(")");
+
         if (n.getInitializer().isPresent()) {
             printer.print(" ");
             n.getInitializer().get().accept(this, arg);
@@ -846,6 +852,9 @@ public class JavaScriptConverterVisitor implements VoidVisitor<Void> {
 
     @Override
     public void visit(final MethodDeclaration n, final Void arg) {
+        // do not print out the java main() method
+        if (n.getNameAsString().equals("main")) return;
+
         printOrphanCommentsBeforeThisChildNode(n);
         printComment(n.getComment(), arg);
 
@@ -925,17 +934,8 @@ public class JavaScriptConverterVisitor implements VoidVisitor<Void> {
     @Override
     public void visit(final VariableDeclarationExpr n, final Void arg) {
         printComment(n.getComment(), arg);
-        if (n.getParentNode().map(ExpressionStmt.class::isInstance).orElse(false)) {
-            printMemberAnnotations(n.getAnnotations(), arg);
-        } else {
-            printAnnotations(n.getAnnotations(), false, arg);
-        }
-        printModifiers(n.getModifiers());
 
-        if (!n.getVariables().isEmpty()) {
-            n.getMaximumCommonType().ifPresent(t -> t.accept(this, arg));
-        }
-        printer.print(" ");
+        printer.print("var ");
 
         for (final Iterator<VariableDeclarator> i = n.getVariables().iterator(); i.hasNext(); ) {
             final VariableDeclarator v = i.next();
