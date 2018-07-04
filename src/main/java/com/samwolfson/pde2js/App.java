@@ -27,6 +27,13 @@ public class App {
     }
 
     public static void main(String[] args) {
+
+        Integer port = Integer.getInteger("PORT");
+
+        if (port != null) {
+            port(port);
+        }
+
         setupServer();
         get("/", (req, res) -> render(null, "index.hbs"));
         post("/convert", (req, res) -> {
