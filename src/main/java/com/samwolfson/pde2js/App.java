@@ -28,11 +28,16 @@ public class App {
 
     public static void main(String[] args) {
 
-        Integer port = Integer.getInteger("PORT");
 
-        if (port != null) {
-            System.out.println("Listening on port " + port);
-            port(port);
+        String portStr = System.getenv("PORT");
+
+        if (portStr != null) {
+            try {
+                port(Integer.parseInt(portStr));
+                System.out.println("Listening on port " + portStr);
+            } catch (NumberFormatException ignored) {
+
+            }
         }
 
         setupServer();
