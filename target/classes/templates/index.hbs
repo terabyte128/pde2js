@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Processing to JS</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+</head>
+<body>
+
+<div class="container">
+    <br>
+    <div class="row">
+        <div class="col-md">
+            <h1>Processing to P5.js Converter</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md">
+            <h5>Paste your Processing code here:</h5>
+            <textarea style="font-family: 'Courier New', monospace;" id="processing" rows="18" class="form-control"></textarea>
+            <button class="btn btn-primary form-control" style="margin-top: 10px;" id="convertButton">Convert!</button>
+        </div>
+        <div class="col-md">
+            <h5>P5.js code will appear here:</h5>
+            <textarea style="font-family: 'Courier New', monospace;" id="js" rows="20" class="form-control" readonly></textarea>
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-md">
+            <h5>Error Log</h5>
+            <textarea id="oops" style="font-family: 'Courier New', monospace;" rows="5" class="form-control" readonly></textarea>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        listenToConvert();
+        listenToClick();
+    });
+
+    function listenToConvert() {
+        $("#convertButton").click(function() {
+            var pdeCode = $("#processing").val();
+
+            $("#oops").val("");
+            $("#js").val("");
+
+            $.post('/convert', pdeCode, function(response) {
+                if (response['hasErrors']) {
+                    $("#oops").val(response['errors']);
+                } else {
+                    $("#js").val(response['code']);
+                }
+            });
+        });
+    }
+
+    function listenToClick() {
+        $("#js").click(function() {
+            $(this).select();
+        });
+    }
+</script>
+</body>
+</html>

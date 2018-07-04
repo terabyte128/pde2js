@@ -50,9 +50,10 @@ import static com.github.javaparser.utils.Utils.*;
 import static java.util.Comparator.comparingInt;
 
 /**
- * Outputs the AST as formatted Java source code.
- *
- * @author Julio Vilmar Gesser
+ * Outputs an AST as JavaScript source code by:
+ * - renaming return type to `function` in function declarations
+ * - renaming #{typename} to `var` in variable declarations
+ * - removing #{typename} from argument lists
  */
 public class JavaScriptPrinterVisitor implements VoidVisitor<Void> {
     protected final PrettyPrinterConfiguration configuration;
@@ -893,14 +894,6 @@ public class JavaScriptPrinterVisitor implements VoidVisitor<Void> {
         printComment(n.getComment(), arg);
         printAnnotations(n.getAnnotations(), false, arg);
         printModifiers(n.getModifiers());
-        n.getType().accept(this, arg);
-        if (n.isVarArgs()) {
-            printAnnotations(n.getVarArgsAnnotations(), false, arg);
-            printer.print("...");
-        }
-        if (!(n.getType() instanceof UnknownType)) {
-            printer.print(" ");
-        }
         n.getName().accept(this, arg);
     }
 
@@ -1444,7 +1437,7 @@ public class JavaScriptPrinterVisitor implements VoidVisitor<Void> {
     public void visit(LambdaExpr n, Void arg) {
         printComment(n.getComment(), arg);
 
-        final NodeList<Parameter> parameters = n.getParameters();
+            final NodeList<Parameter> parameters = n.getParameters();
         final boolean printPar = n.isEnclosingParameters();
 
         if (printPar) {
