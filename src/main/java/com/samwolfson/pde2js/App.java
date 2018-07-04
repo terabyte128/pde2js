@@ -1,42 +1,60 @@
 package com.samwolfson.pde2js;
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.printer.PrettyPrintVisitor;
-import com.github.javaparser.printer.PrettyPrinterConfiguration;
-import com.samwolfson.pde2js.visitors.*;
+import com.github.javaparser.ParseProblemException;
+import spark.ModelAndView;
+import spark.template.handlebars.HandlebarsTemplateEngine;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import javax.json.Json;
+import java.util.Map;
+
+import static spark.Spark.*;
 
 public class App {
-    public static void main( String[] args ) throws FileNotFoundException {
-        CompilationUnit cu = JavaParser.parse(new File("./samples/JSConversionSampleBuild/source/JSConversionSample.java"));
 
-        SetupMethodFinderVisitor setupMethodFinder = new SetupMethodFinderVisitor();
-        cu.accept(setupMethodFinder, null);
+    public static void setupServer() {
+        // enable auto-refresh of static files during development
+        if (System.getenv("DEVELOPMENT") != null) {
+            String projectDir = System.getProperty("user.dir");
+            String staticDir = "/src/main/resources/public";
+            staticFiles.externalLocation(projectDir + staticDir);
+        } else {
+            staticFiles.location("/public");
+        }
+    }
 
-        MethodDeclaration setupMethod = setupMethodFinder.getSetupMethod().orElseThrow(IllegalStateException::new);
+    public static String render(Map<String, Object> templateVars, String templatePath) {
+        return new HandlebarsTemplateEngine().render(new ModelAndView(templateVars, templatePath));
+    }
 
-        // add call to settings() from setup() method
-        setupMethod.getBody().ifPresent(body -> {
-            // call settings() from setup()
-            body.addStatement(0, new MethodCallExpr("settings"));
+    public static void main(String[] args) {
+        setupServer();
+        get("/", (req, res) -> render(null, "index.hbs"));
+        post("/convert", (req, res) -> {
+            res.type("application/json");
+
+            if (req.body().isEmpty()) {
+                return Json.createObjectBuilder()
+                        .add("hasErrors", true)
+                        .add("errors", "You need paste in some code!")
+                        .build()
+                        .toString();
+            }
+
+            try {
+                ProcessingToP5Converter converter = new ProcessingToP5Converter(req.body());
+                return Json.createObjectBuilder()
+                        .add("code", converter.getJsCode())
+                        .add("hasErrors", false)
+                        .build()
+                        .toString();
+            } catch (ParseProblemException e) {
+                return Json.createObjectBuilder()
+                        .add("hasErrors", true)
+                        .add("errors", e.getMessage())
+                        .build()
+                        .toString();
+            }
         });
-
-        cu.accept(new InitializationInSetupVisitor(setupMethod), null);
-        cu.accept(new SizeToCreateCanvasVisitor(), null);
-        cu.accept(new StringLengthVisitor(), null);
-        cu.accept(new RenameKeyPressedVisitor(), null);
-
-        printSource(cu);
     }
 
-    public static void printSource(CompilationUnit cu) {
-        JavaScriptConverterVisitor prettyPrintVisitor = new JavaScriptConverterVisitor(new PrettyPrinterConfiguration());
-        cu.accept(prettyPrintVisitor, null);
-        System.out.println(prettyPrintVisitor.getSource());
-    }
 }

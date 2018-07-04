@@ -54,11 +54,11 @@ import static java.util.Comparator.comparingInt;
  *
  * @author Julio Vilmar Gesser
  */
-public class JavaScriptConverterVisitor implements VoidVisitor<Void> {
+public class JavaScriptPrinterVisitor implements VoidVisitor<Void> {
     protected final PrettyPrinterConfiguration configuration;
     protected final SourcePrinter printer;
 
-    public JavaScriptConverterVisitor(PrettyPrinterConfiguration prettyPrinterConfiguration) {
+    public JavaScriptPrinterVisitor(PrettyPrinterConfiguration prettyPrinterConfiguration) {
         configuration = prettyPrinterConfiguration;
         printer = new SourcePrinter(configuration);
     }
