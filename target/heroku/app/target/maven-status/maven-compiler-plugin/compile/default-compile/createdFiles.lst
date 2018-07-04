@@ -1,0 +1,11 @@
+com/samwolfson/pde2js/visitors/SizeToCreateCanvasVisitor.class
+com/samwolfson/pde2js/visitors/JavaScriptPrinterVisitor.class
+com/samwolfson/pde2js/visitors/StringNameCollectorVisitor.class
+com/samwolfson/pde2js/ProcessingToP5Converter.class
+com/samwolfson/pde2js/visitors/SetupMethodFinderVisitor.class
+com/samwolfson/pde2js/App.class
+com/samwolfson/pde2js/SourcePrinter$1.class
+com/samwolfson/pde2js/visitors/InitializationInSetupVisitor.class
+com/samwolfson/pde2js/visitors/RenameKeyPressedVisitor.class
+com/samwolfson/pde2js/visitors/StringLengthVisitor.class
+com/samwolfson/pde2js/SourcePrinter.class

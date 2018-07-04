@@ -31,6 +31,7 @@ public class App {
         Integer port = Integer.getInteger("PORT");
 
         if (port != null) {
+            System.out.println("Listening on port " + port);
             port(port);
         }
 
