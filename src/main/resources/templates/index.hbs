@@ -4,7 +4,7 @@
 <head>
     <title>Processing to JS</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-</head>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous"></head>
 <body>
 
 <div class="container">
@@ -16,19 +16,25 @@
     </div>
     <div class="row">
         <div class="col-md">
-            <h5>Paste your Processing code here:</h5>
-            <textarea style="font-family: 'Courier New', monospace;" id="processing" rows="18" class="form-control"></textarea>
-            <button class="btn btn-primary form-control" style="margin-top: 10px;" id="convertButton">Convert!</button>
+            <div id="processing-wrapper">
+                <h6>Enter your Processing code here:</h6>
+                <div style="height: 451px;" class="form-control" id="processing"></div>
+                <button class="btn btn-primary form-control" style="margin-top: 10px;" id="convertButton"><i class="fas fa-sync"></i> Convert to P5.js</button>
+            </div>
+            <div id="run-wrapper">
+
+            </div>
         </div>
         <div class="col-md">
-            <h5>P5.js code will appear here:</h5>
-            <textarea style="font-family: 'Courier New', monospace;" id="js" rows="20" class="form-control" readonly></textarea>
+            <h6>P5.js code will appear here:</h6>
+            <div style="height: 500px;" id="js" class="form-control"></div>
+            <!--<button class="btn btn-success form-control" style="margin-top: 10px;" id="runButton"><i class="fas fa-play"></i> Run P5.js</button>-->
         </div>
     </div>
     <br>
     <div class="row">
         <div class="col-md">
-            <h5>Error Log</h5>
+            <h6>Error Log</h6>
             <textarea id="oops" style="font-family: 'Courier New', monospace;" rows="5" class="form-control" readonly></textarea>
         </div>
     </div>
@@ -37,25 +43,41 @@
 <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.3.3/ace.js"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/p5.min.js"></script>-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.dom.min.js"></script>-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.sound.min.js"></script>-->
 
 <script type="text/javascript">
+    var pdeEditor, jsEditor;
+
     $(document).ready(function() {
+        pdeEditor = ace.edit("processing");
+        pdeEditor.session.setMode("ace/mode/java");
+
+        jsEditor = ace.edit("js");
+        jsEditor.session.setMode("ace/mode/javascript");
+
         listenToConvert();
         listenToClick();
     });
 
     function listenToConvert() {
         $("#convertButton").click(function() {
-            var pdeCode = $("#processing").val();
+            $(this).prop('disabled', true);
+
+            var pdeCode = pdeEditor.getValue();
 
             $("#oops").val("");
-            $("#js").val("");
+            jsEditor.setValue("");
 
             $.post('/convert', pdeCode, function(response) {
+                $("#convertButton").prop('disabled', false);
+
                 if (response['hasErrors']) {
                     $("#oops").val(response['errors']);
                 } else {
-                    $("#js").val(response['code']);
+                    jsEditor.setValue(response['code']);
                 }
             });
         });

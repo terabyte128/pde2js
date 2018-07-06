@@ -14,6 +14,7 @@ public class StringLengthVisitor extends VoidVisitorAdapter<Void> {
 
     @Override
     public void visit(MethodCallExpr n, Void arg) {
+        super.visit(n, arg);
         if (n.getScope().isPresent() && n.getNameAsString().equals("length")) {
             n.replace(new FieldAccessExpr(n.getScope().get(), "length"));
         }

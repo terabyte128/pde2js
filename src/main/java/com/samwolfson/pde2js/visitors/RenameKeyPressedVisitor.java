@@ -23,6 +23,7 @@ public class RenameKeyPressedVisitor extends VoidVisitorAdapter<Void> {
 
     @Override
     public void visit(NameExpr n, Void arg) {
+        super.visit(n, arg);
         if (Arrays.asList(keyNames).contains(n.getNameAsString())) {
             n.setName(n.getNameAsString() + "_ARROW");
         }

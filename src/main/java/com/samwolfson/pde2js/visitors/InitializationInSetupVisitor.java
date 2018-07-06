@@ -27,6 +27,8 @@ public class InitializationInSetupVisitor extends VoidVisitorAdapter<Void> {
 
     @Override
     public void visit(FieldDeclaration n, Void arg) {
+        super.visit(n, arg);
+
         n.getVariables().forEach(v -> {
             if (v.getInitializer().isPresent()) {
                 Expression initializer = v.getInitializer().get();

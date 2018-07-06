@@ -5,6 +5,9 @@ import spark.ModelAndView;
 import spark.template.handlebars.HandlebarsTemplateEngine;
 
 import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import java.util.List;
 import java.util.Map;
 
 import static spark.Spark.*;
@@ -46,28 +49,36 @@ public class App {
             res.type("application/json");
 
             if (req.body().isEmpty()) {
-                return Json.createObjectBuilder()
-                        .add("hasErrors", true)
-                        .add("errors", "You need paste in some code!")
-                        .build()
-                        .toString();
+                return jsonResponse(true, null, "You need to paste in some code!");
             }
 
-            try {
-                ProcessingToP5Converter converter = new ProcessingToP5Converter(req.body());
-                return Json.createObjectBuilder()
-                        .add("code", converter.getJsCode())
-                        .add("hasErrors", false)
-                        .build()
-                        .toString();
-            } catch (ParseProblemException e) {
-                return Json.createObjectBuilder()
-                        .add("hasErrors", true)
-                        .add("errors", e.getMessage())
-                        .build()
-                        .toString();
+            List<String> precompileErrors = ProgramChecker.precompileCheck(req.body());
+            if (precompileErrors.isEmpty()) {
+                try {
+
+                    ProcessingToP5Converter converter = new ProcessingToP5Converter(req.body());
+                    return jsonResponse(false, converter.getJsCode(), null);
+
+                } catch (ParseProblemException e) {
+                    return jsonResponse(true, null,
+                            String.join("\n", ProgramChecker.interpretParserErrors(e.getProblems())));
+                }
+            } else {
+                return jsonResponse(true, null, String.join("\n", precompileErrors));
             }
         });
     }
 
+    private static String jsonResponse(boolean hasErrors, String code, String errors) {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+
+        builder.add("hasErrors", hasErrors);
+        if (hasErrors) {
+            builder.add("errors", errors);
+        } else {
+            builder.add("code", code);
+        }
+
+        return builder.build().toString();
+    }
 }
