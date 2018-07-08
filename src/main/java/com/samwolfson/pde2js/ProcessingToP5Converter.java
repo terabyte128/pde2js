@@ -2,12 +2,24 @@ package com.samwolfson.pde2js;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.comments.BlockComment;
+import com.github.javaparser.ast.comments.Comment;
+import com.github.javaparser.ast.comments.JavadocComment;
+import com.github.javaparser.ast.comments.LineComment;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.printer.PrettyPrinterConfiguration;
 import com.samwolfson.pde2js.visitors.*;
 import spark.utils.IOUtils;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -15,6 +27,7 @@ import java.util.regex.Pattern;
  */
 public class ProcessingToP5Converter {
     private String jsCode;
+    private List<String> warnings = new ArrayList<>();
 
     // the prefix appended to functions that cause the parser to complain since they
     // have the same names as data types
@@ -64,6 +77,10 @@ public class ProcessingToP5Converter {
         return jsCode;
     }
 
+    public List<String> getWarnings() {
+        return Collections.unmodifiableList(warnings);
+    }
+
     private void compile(String javaCode) {
         // generate the AST
         CompilationUnit cu = JavaParser.parse(javaCode);
@@ -93,6 +110,25 @@ public class ProcessingToP5Converter {
         // to what they were originally
         cu.accept(new RenameConflictingMethodVisitor(), null);
 
+        // replace println() with print()
+        cu.accept(new PrintlnToPrintVisitor(), null);
+
+        // collect all of the calls to functions that load stuff
+        // in JS, must be moved to the preload() function
+        CollectLoadMethodsVisitor collectLoadMethodsVisitor = new CollectLoadMethodsVisitor();
+        cu.accept(collectLoadMethodsVisitor, null);
+
+        List<Expression> loadMethodCalls = collectLoadMethodsVisitor.getLoadMethodCalls();
+
+        Node classNode = setupMethod.getParentNode().orElseThrow(() -> new IllegalStateException("Setup method must have a parent"));
+
+        if (!((classNode instanceof ClassOrInterfaceDeclaration) && !((ClassOrInterfaceDeclaration) classNode).isInterface())) {
+            throw new IllegalStateException("Parent of setup method must be a class declaration");
+        }
+
+        ClassOrInterfaceDeclaration classDecl = (ClassOrInterfaceDeclaration) classNode;
+        createPreloadMethod(classDecl, loadMethodCalls);
+
         jsCode = getSource(cu);
     }
 
@@ -107,8 +143,49 @@ public class ProcessingToP5Converter {
         return prettyPrintVisitor.getSource();
     }
 
+    /**
+     * Create a new method called preload() in the class, and add a comment that the following expressions should
+     * be moved there. (We can't move the expressions there directly because they might intermingle with other
+     * variable assignments).
+     * @param klass Class in which to create the method
+     * @param expressions Expressions to put in the comment.
+     */
+    private void createPreloadMethod(ClassOrInterfaceDeclaration klass, List<Expression> expressions) {
+        if (expressions.isEmpty()) {
+            return;
+        }
+
+        warnings.add("Manual changes required. See preload() method in P5.js code (it's probably at the bottom)");
+
+        MethodDeclaration preloadMethod = klass.getMethods().stream()
+                .filter(m -> m.getNameAsString().equals("preload"))
+                .findFirst().orElse(klass.addMethod("preload"));
+
+        if (!preloadMethod.getBody().isPresent()) {
+            preloadMethod.setBody(new BlockStmt());
+        }
+
+        BlockStmt preloadMethodBody = preloadMethod.getBody().get();
+
+        preloadMethodBody.addOrphanComment(new LineComment("TODO: put method calls that load from files into this method"));
+        preloadMethodBody.addOrphanComment(new LineComment("I found the following calls that you should move here:"));
+
+        expressions.forEach(e -> {
+            int lineNumber = -1;
+            if (e.getRange().isPresent()) {
+                lineNumber = e.getRange().get().begin.line;
+            }
+
+            preloadMethodBody.addOrphanComment(
+                    new LineComment("- on line " + (lineNumber == -1 ? "??" : lineNumber) + ": " + e)
+            );
+        });
+
+        preloadMethodBody.addOrphanComment(new LineComment("(note that line numbers are from your Processing code)"));
+    }
+
     public static void main(String[] args) throws IOException {
-        try (FileInputStream inputStream = new FileInputStream("./samples/word_guessing.pde")) {
+        try (FileInputStream inputStream = new FileInputStream("./samples/birthday_viz.pde")) {
             String content = IOUtils.toString(inputStream);
 
             ProcessingToP5Converter converter = new ProcessingToP5Converter(content);

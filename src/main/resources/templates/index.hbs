@@ -18,8 +18,8 @@
         <div class="col-md">
             <div id="processing-wrapper">
                 <h6>Enter your Processing code here:</h6>
-                <div style="height: 451px;" class="form-control" id="processing"></div>
-                <button class="btn btn-primary form-control" style="margin-top: 10px;" id="convertButton"><i class="fas fa-sync"></i> Convert to P5.js</button>
+                <div style="height: 450px;" class="form-control" id="processing"></div>
+                <button class="btn btn-primary form-control" style="margin-top: 10px;" id="convertButton"><i class="fas fa-sync"></i>&nbsp; Convert to P5.js</button>
             </div>
             <div id="run-wrapper">
 
@@ -27,8 +27,8 @@
         </div>
         <div class="col-md">
             <h6>P5.js code will appear here:</h6>
-            <div style="height: 500px;" id="js" class="form-control"></div>
-            <!--<button class="btn btn-success form-control" style="margin-top: 10px;" id="runButton"><i class="fas fa-play"></i> Run P5.js</button>-->
+            <div style="height: 450px;" id="js" class="form-control"></div>
+            <a target="_blank" href="http://editor.p5js.org" class="btn btn-success form-control" style="margin-top: 10px;" id="runButton"><i class="fas fa-external-link-alt"></i>&nbsp; Online P5 Editor</a>
         </div>
     </div>
     <br>
@@ -59,7 +59,6 @@
         jsEditor.session.setMode("ace/mode/javascript");
 
         listenToConvert();
-        listenToClick();
     });
 
     function listenToConvert() {
@@ -78,14 +77,11 @@
                     $("#oops").val(response['errors']);
                 } else {
                     jsEditor.setValue(response['code']);
+                    if (response['warnings'] !== "") {
+                        $("#oops").val("Your code was converted, with caveats:\n" + response['warnings']);
+                    }
                 }
             });
-        });
-    }
-
-    function listenToClick() {
-        $("#js").click(function() {
-            $(this).select();
         });
     }
 </script>

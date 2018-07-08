@@ -9,6 +9,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static spark.Spark.*;
 
@@ -49,7 +50,7 @@ public class App {
             res.type("application/json");
 
             if (req.body().isEmpty()) {
-                return jsonResponse(true, null, "You need to paste in some code!");
+                return jsonResponse(true, null, "You need to paste in some code!", null);
             }
 
             List<String> precompileErrors = ProgramChecker.precompileCheck(req.body());
@@ -57,19 +58,21 @@ public class App {
                 try {
 
                     ProcessingToP5Converter converter = new ProcessingToP5Converter(req.body());
-                    return jsonResponse(false, converter.getJsCode(), null);
+                    String warnings = converter.getWarnings().stream().map(s -> " - " + s).collect(Collectors.joining("\n"));
+
+                    return jsonResponse(false, converter.getJsCode(), null, String.join("\n", warnings));
 
                 } catch (ParseProblemException e) {
                     return jsonResponse(true, null,
-                            String.join("\n", ProgramChecker.interpretParserErrors(e.getProblems())));
+                            String.join("\n", ProgramChecker.interpretParserErrors(e.getProblems())), null);
                 }
             } else {
-                return jsonResponse(true, null, String.join("\n", precompileErrors));
+                return jsonResponse(true, null, String.join("\n", precompileErrors), null);
             }
         });
     }
 
-    private static String jsonResponse(boolean hasErrors, String code, String errors) {
+    private static String jsonResponse(boolean hasErrors, String code, String errors, String warnings) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
 
         builder.add("hasErrors", hasErrors);
@@ -77,6 +80,7 @@ public class App {
             builder.add("errors", errors);
         } else {
             builder.add("code", code);
+            builder.add("warnings", warnings);
         }
 
         return builder.build().toString();
