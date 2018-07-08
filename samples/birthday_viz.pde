@@ -16,6 +16,8 @@ void setup() {
 
   temp = loadStrings("rank.csv");
   rank = int(split(temp[0], ','));
+
+  println("foo");
 }
 
 void draw() {
