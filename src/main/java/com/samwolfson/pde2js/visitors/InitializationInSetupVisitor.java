@@ -28,15 +28,12 @@ public class InitializationInSetupVisitor extends VoidVisitorAdapter<Void> {
     public void visit(FieldDeclaration n, Void arg) {
         super.visit(n, arg);
 
-        // loop over the variables backwards, since they will be
-        // inserted at the top of the setup() method (index 0)
-        for (int i = n.getVariables().size() - 1; i >= 0; i--) {
-            VariableDeclarator v = n.getVariable(i);
+        n.getVariables().forEach(v -> {
             if (v.getInitializer().isPresent()) {
                 Expression initializer = v.getInitializer().get();
-                setupMethodBody.addStatement(0, new AssignExpr(v.getNameAsExpression(), initializer, AssignExpr.Operator.ASSIGN));
+                setupMethodBody.addStatement(new AssignExpr(v.getNameAsExpression(), initializer, AssignExpr.Operator.ASSIGN));
                 v.removeInitializer();
             }
-        }
+        });
     }
 }

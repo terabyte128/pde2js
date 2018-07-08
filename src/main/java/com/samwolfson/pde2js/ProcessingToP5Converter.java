@@ -10,6 +10,7 @@ import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.ast.comments.LineComment;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.printer.PrettyPrinterConfiguration;
 import com.samwolfson.pde2js.visitors.*;
@@ -90,12 +91,28 @@ public class ProcessingToP5Converter {
         cu.accept(setupMethodFinder, null);
         MethodDeclaration setupMethod = setupMethodFinder.getSetupMethod().orElseThrow(IllegalStateException::new);
 
+
+        Node classNode = setupMethod.getParentNode().orElseThrow(() -> new IllegalStateException("Setup method must have a parent"));
+
+        if (!((classNode instanceof ClassOrInterfaceDeclaration) && !((ClassOrInterfaceDeclaration) classNode).isInterface())) {
+            throw new IllegalStateException("Parent of setup method must be a class declaration");
+        }
+
+        // the class containing all of the Processing code
+        ClassOrInterfaceDeclaration classDecl = (ClassOrInterfaceDeclaration) classNode;
+
         /*
         The following visitor passes all modify the generated AST to make it work as JS
          */
 
-        // move variable initializations into setup()
-        cu.accept(new InitializationInSetupVisitor(setupMethod), null);
+        // move variable initializations into a new method, initializeFields()
+        MethodDeclaration initializeFieldsMethod = classDecl.addMethod("initializeFields");
+        initializeFieldsMethod.setBody(new BlockStmt());
+
+        cu.accept(new InitializationInSetupVisitor(initializeFieldsMethod), null);
+
+        // call initializeFields() at the beginning of setup()
+        setupMethod.getBody().orElseThrow(IllegalStateException::new).addStatement(0, new MethodCallExpr("initializeFields"));
 
         // rename call to size() to createCanvas()
         cu.accept(new SizeToCreateCanvasVisitor(), null);
@@ -119,14 +136,6 @@ public class ProcessingToP5Converter {
         cu.accept(collectLoadMethodsVisitor, null);
 
         List<Expression> loadMethodCalls = collectLoadMethodsVisitor.getLoadMethodCalls();
-
-        Node classNode = setupMethod.getParentNode().orElseThrow(() -> new IllegalStateException("Setup method must have a parent"));
-
-        if (!((classNode instanceof ClassOrInterfaceDeclaration) && !((ClassOrInterfaceDeclaration) classNode).isInterface())) {
-            throw new IllegalStateException("Parent of setup method must be a class declaration");
-        }
-
-        ClassOrInterfaceDeclaration classDecl = (ClassOrInterfaceDeclaration) classNode;
         createPreloadMethod(classDecl, loadMethodCalls);
 
         jsCode = getSource(cu);
