@@ -189,13 +189,4 @@ public class ProcessingToP5Converter {
 
         preloadMethodBody.addOrphanComment(new LineComment("(note that line numbers are from your Processing code)"));
     }
-
-    public static void main(String[] args) throws IOException {
-        try (FileInputStream inputStream = new FileInputStream("./samples/JSConversionSample.pde")) {
-            String content = IOUtils.toString(inputStream);
-
-            ProcessingToP5Converter converter = new ProcessingToP5Converter(content);
-            System.out.println(converter.getJsCode());
-        }
-    }
 }
