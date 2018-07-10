@@ -30,5 +30,7 @@ The final pass, `JavaScriptPrinterVisitor`, does not transform the tree; rather,
 
 It's definitely nowhere close to perfect, but the first goal is to help new programmers avoid the headache and weird errors that occur when trying to manually transform their code for use on the Web. More complicated transformations can be added in the future.
 
+Sample Processing files are given in the `samples/` directory, which should help to illustrate how each transformation over the AST works.
+
 ## Contributions
 Contributions are welcome! Please let me know if you've found a bug, or have a feature request, by creating an issue. Pull requests are also welcome.
