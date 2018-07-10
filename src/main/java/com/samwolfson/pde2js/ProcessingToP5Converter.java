@@ -5,9 +5,6 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.comments.BlockComment;
-import com.github.javaparser.ast.comments.Comment;
-import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.ast.comments.LineComment;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
@@ -194,7 +191,7 @@ public class ProcessingToP5Converter {
     }
 
     public static void main(String[] args) throws IOException {
-        try (FileInputStream inputStream = new FileInputStream("./samples/birthday_viz.pde")) {
+        try (FileInputStream inputStream = new FileInputStream("./samples/JSConversionSample.pde")) {
             String content = IOUtils.toString(inputStream);
 
             ProcessingToP5Converter converter = new ProcessingToP5Converter(content);
