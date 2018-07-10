@@ -50,6 +50,8 @@ import static com.github.javaparser.utils.Utils.*;
 import static java.util.Comparator.comparingInt;
 
 /**
+ * This file was modified for pde2js to output the JavaParser AST as JS source code.
+ *
  * Outputs an AST as JavaScript source code by:
  * - renaming return type to `function` in function declarations
  * - renaming #{typename} to `var` in variable declarations
