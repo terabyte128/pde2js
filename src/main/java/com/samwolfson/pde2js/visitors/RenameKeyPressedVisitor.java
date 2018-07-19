@@ -2,6 +2,7 @@ package com.samwolfson.pde2js.visitors;
 
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.BooleanLiteralExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
@@ -20,6 +21,7 @@ import java.util.Collections;
 public class RenameKeyPressedVisitor extends VoidVisitorAdapter<Void> {
 
     private String[] keyNames = { "UP", "LEFT", "RIGHT", "DOWN" };
+    private boolean codedKeys = false;
 
     @Override
     public void visit(NameExpr n, Void arg) {
@@ -29,9 +31,13 @@ public class RenameKeyPressedVisitor extends VoidVisitorAdapter<Void> {
         }
     }
 
+    public boolean hasCodedKeys() {
+        return codedKeys;
+    }
+
     /**
-     * Remove key == CODED checks.
-     * TODO: currently this replaces those checks with "if (true)" -- is there a better way?
+     * Replace <code>key == CODED</code> checks with calls to a function that checks if the key is part
+     * of a predefined list of coded keys.
      * @param n
      * @param arg
      */
@@ -48,7 +54,8 @@ public class RenameKeyPressedVisitor extends VoidVisitorAdapter<Void> {
                         || (n.getLeft().asNameExpr().getNameAsString().equals("CODED")
                         && n.getRight().asNameExpr().getNameAsString().equals("key"))) {
 
-                    n.replace(new BooleanLiteralExpr(true));
+                    n.replace(new MethodCallExpr("__keyIsCoded"));
+                    codedKeys = true;
                 }
             }
         }

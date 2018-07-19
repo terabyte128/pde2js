@@ -6,15 +6,16 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.comments.LineComment;
+import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.ReturnStmt;
+import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.printer.PrettyPrinterConfiguration;
 import com.samwolfson.pde2js.visitors.*;
-import spark.utils.IOUtils;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +32,8 @@ public class ProcessingToP5Converter {
     // have the same names as data types
     public static final String DATA_TYPE_CONFLICT_PREFIX = "___parse";
     public static final String CONFLICTING_DATA_TYPE_REGEX = "(boolean|byte|char|float|int)";
+    private static final String[] CODED_KEYS = { "BACKSPACE", "DELETE", "ENTER", "RETURN", "TAB", "ESCAPE",
+            "SHIFT", "CONTROL", "OPTION", "ALT", "UP_ARROW", "DOWN_ARROW", "LEFT_ARROW", "RIGHT_ARROW" };
 
     private static Pattern datatypeFunctionRegex = Pattern.compile(CONFLICTING_DATA_TYPE_REGEX + "\\s*\\(");
     /**
@@ -118,7 +121,13 @@ public class ProcessingToP5Converter {
         cu.accept(new StringLengthVisitor(), null);
 
         // rename #{DIRECTION} to #{DIRECTION}_ARROW
-        cu.accept(new RenameKeyPressedVisitor(), null);
+        // and replace checks to key == CODED with calls to special function
+        RenameKeyPressedVisitor visitor = new RenameKeyPressedVisitor();
+        cu.accept(visitor, null);
+
+        if (visitor.hasCodedKeys()) {
+            createKeyIsCodedFunction(classDecl);
+        }
 
         // fix the method names that conflict with function names so they're back
         // to what they were originally
@@ -188,5 +197,39 @@ public class ProcessingToP5Converter {
         });
 
         preloadMethodBody.addOrphanComment(new LineComment("(note that line numbers are from your Processing code)"));
+    }
+
+    /**
+     * Processing requires a key == CODED check, whereas p5.js does not. However, unconditionally eliminating
+     * this branch of an if/else statement could cause undesired behavior. The function that this method generates
+     * performs an equivalent check to <code>if (key == CODED) {...}</code>
+     *
+     * The new function is called <code>__keyIsCoded()</code> to avoid name conflicts with other functions.
+     * @param klass Class in which to add the new function
+     */
+    private void createKeyIsCodedFunction(ClassOrInterfaceDeclaration klass) {
+        MethodDeclaration keyCodeFunction = klass.addMethod("__keyIsCoded");
+        keyCodeFunction.setType(PrimitiveType.booleanType());
+        BlockStmt methodBody = new BlockStmt();
+
+        BinaryExpr expr = null;
+
+        // add the first expression to the list of checks
+        if (CODED_KEYS.length > 0) {
+            expr = new BinaryExpr(new NameExpr("keyCode"), new NameExpr(CODED_KEYS[0]), BinaryExpr.Operator.EQUALS);
+        }
+
+        // add the rest of them
+        for (int i = 1; i < CODED_KEYS.length; i++) {
+            expr = new BinaryExpr(expr,
+                    new BinaryExpr(
+                            new NameExpr("keyCode"),
+                            new NameExpr(CODED_KEYS[i]),
+                            BinaryExpr.Operator.EQUALS
+                    ), BinaryExpr.Operator.OR);
+        }
+
+        methodBody.addStatement(new ReturnStmt(expr));
+        keyCodeFunction.setBody(methodBody);
     }
 }

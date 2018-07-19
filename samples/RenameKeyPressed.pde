@@ -20,4 +20,8 @@ void keyPressed() {
   } else {
      println("key: " + key);
   }
+
+  if (1 == 2 || 2 == 3 || 3 == 4) {
+
+  }
 }
