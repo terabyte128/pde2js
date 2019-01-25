@@ -80,6 +80,8 @@
                     $("#oops").val(response['errors']);
                 } else {
                     jsEditor.setValue(response['code']);
+                    jsEditor.clearSelection();
+
                     if (response['warnings'] !== "") {
                         $("#oops").val("Your code was converted, with caveats:\n" + response['warnings']);
                     }
