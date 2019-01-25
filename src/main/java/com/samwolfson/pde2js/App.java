@@ -62,6 +62,9 @@ public class App {
                     return jsonResponse(false, converter.getJsCode(), null, String.join("\n", warnings));
 
                 } catch (ParseProblemException e) {
+                    e.printStackTrace();
+
+
                     return jsonResponse(true, null,
                             String.join("\n", ProgramChecker.interpretParserErrors(e.getProblems())), null);
                 }

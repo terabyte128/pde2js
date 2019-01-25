@@ -9,7 +9,7 @@ import java.io.IOException;
 public class ConvertProcessingFile {
     public static void main(String[] args) throws IOException {
         // read a file into a String
-        try (FileInputStream inputStream = new FileInputStream("./samples/RenameKeyPressed.pde")) {
+        try (FileInputStream inputStream = new FileInputStream("./samples/student/lego_family/lego_family.pde")) {
             String content = IOUtils.toString(inputStream);
 
             // create a new instance of the converter

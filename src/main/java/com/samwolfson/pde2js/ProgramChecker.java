@@ -23,9 +23,9 @@ public class ProgramChecker {
         parseProblems.forEach(problem -> {
             if (problem.getLocation().isPresent()) {
                 TokenRange location = problem.getLocation().get();
-                errors.add("Error found around " + location.getBegin().toString());
+                errors.add("Error found around " + location.getBegin().toString() + "\n" + problem.getMessage());
             } else {
-                errors.add("Error found around ???");
+                errors.add("Error found around ???\n" + problem.getMessage());
             }
         });
 

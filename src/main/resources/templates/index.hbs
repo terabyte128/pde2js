@@ -12,12 +12,14 @@
     <div class="row">
         <div class="col-md">
             <h1>Processing to P5.js Converter</h1>
+            <p>Use this website to automagically convert your Processing code so that it will run on your website. Paste your Processing code into the left text box, press the
+                <span class="badge badge-primary"><i class="fas fa-sync"></i>&nbsp; Convert to P5.js</span> button, then copy and paste the text from the right text box into the JS file for your website.</p>
         </div>
     </div>
     <div class="row">
         <div class="col-md">
             <div id="processing-wrapper">
-                <h6>Enter your Processing code here:</h6>
+                <h6>Type or paste your Processing code here:</h6>
                 <div style="height: 450px;" class="form-control" id="processing"></div>
                 <button class="btn btn-primary form-control" style="margin-top: 10px;" id="convertButton"><i class="fas fa-sync"></i>&nbsp; Convert to P5.js</button>
             </div>
@@ -35,10 +37,11 @@
     <div class="row">
         <div class="col-md">
             <h6>Error Log</h6>
-            <textarea id="oops" style="font-family: 'Courier New', monospace;" rows="5" class="form-control" readonly></textarea>
+            <textarea id="oops" style="font-family: 'Courier New', monospace; color: #ba005d" rows="5" class="form-control" readonly></textarea>
         </div>
     </div>
 </div>
+<br>
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>

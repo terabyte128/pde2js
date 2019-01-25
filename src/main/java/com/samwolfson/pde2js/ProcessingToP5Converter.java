@@ -36,6 +36,27 @@ public class ProcessingToP5Converter {
             "SHIFT", "CONTROL", "OPTION", "ALT", "UP_ARROW", "DOWN_ARROW", "LEFT_ARROW", "RIGHT_ARROW" };
 
     private static Pattern datatypeFunctionRegex = Pattern.compile(CONFLICTING_DATA_TYPE_REGEX + "\\s*\\(");
+
+    /*
+    Alright, hold onto your hats.
+
+    In Processing, it's OK to write hex colors web-style -- that is, #RRGGBB. But you can't do that in normal Java.
+    So we capture colors written like this, which might also have a transparency tagged onto the end (if they're passed
+    to normal Processing functions that deal with color). For instance:
+
+    - #FFAB4D
+    - #9DDFFF, 170
+
+    Later we'll replace these with the color() function, which can take 3 arguments (r, g, b) or 4 arguments (r, g, b, a).
+    So for instance:
+
+    - #FFAB4D => 0xFF, 0xAB, 0x4D
+    - #9DDFFF, 170 => 0x9D, 0xDF, 0xFF, 170
+
+    (this should also work with alpha values specified in hex)
+     */
+    private static Pattern hexColorRegex = Pattern.compile("#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})(,\\s*(?:0x[0-9a-fA-F]{2}|[0-9]+))?");
+
     /**
      *
      * @param processingCode the Processing source code
@@ -70,6 +91,12 @@ public class ProcessingToP5Converter {
         // in Java, int, float, double, etc. are data types, so the Processing functions int(..), float(..) make
         // the parser complain. Change them to something with a different name.
         classCode = datatypeFunctionRegex.matcher(classCode).replaceAll( DATA_TYPE_CONFLICT_PREFIX + "$1(");
+
+        // Processing allows you to specify colors in HTML RGB style, e.g. #RRGGBB, but Java does not. Instead, use
+        // the color(red, green, blue) function.
+        // TODO will this ever conflict with a string containing that pattern?
+
+        classCode = hexColorRegex.matcher(classCode).replaceAll("0x$1, 0x$2, 0x$3$4");
 
         return classCode;
     }
