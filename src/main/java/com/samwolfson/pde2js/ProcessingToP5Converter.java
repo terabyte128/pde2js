@@ -96,7 +96,7 @@ public class ProcessingToP5Converter {
         // the color(red, green, blue) function.
         // TODO will this ever conflict with a string containing that pattern?
 
-        classCode = hexColorRegex.matcher(classCode).replaceAll("0x$1, 0x$2, 0x$3$4");
+        classCode = hexColorRegex.matcher(classCode).replaceAll("color(0x$1, 0x$2, 0x$3$4)");
 
         return classCode;
     }
