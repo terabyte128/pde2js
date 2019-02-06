@@ -50,8 +50,8 @@ public class ProcessingToP5Converter {
     Later we'll replace these with the color() function, which can take 3 arguments (r, g, b) or 4 arguments (r, g, b, a).
     So for instance:
 
-    - #FFAB4D => 0xFF, 0xAB, 0x4D
-    - #9DDFFF, 170 => 0x9D, 0xDF, 0xFF, 170
+    - #FFAB4D => color(0xFF, 0xAB, 0x4D)
+    - #9DDFFF, 170 => color(0x9D, 0xDF, 0xFF, 170)
 
     (this should also work with alpha values specified in hex)
      */
@@ -96,7 +96,7 @@ public class ProcessingToP5Converter {
         // the color(red, green, blue) function.
         // TODO will this ever conflict with a string containing that pattern?
 
-        classCode = hexColorRegex.matcher(classCode).replaceAll("0x$1, 0x$2, 0x$3$4");
+        classCode = hexColorRegex.matcher(classCode).replaceAll("color(0x$1, 0x$2, 0x$3$4)");
 
         return classCode;
     }
@@ -105,7 +105,7 @@ public class ProcessingToP5Converter {
         return jsCode;
     }
 
-    public List<String> getWarnings() {
+    List<String> getWarnings() {
         return Collections.unmodifiableList(warnings);
     }
 
@@ -242,9 +242,7 @@ public class ProcessingToP5Converter {
         BinaryExpr expr = null;
 
         // add the first expression to the list of checks
-        if (CODED_KEYS.length > 0) {
-            expr = new BinaryExpr(new NameExpr("keyCode"), new NameExpr(CODED_KEYS[0]), BinaryExpr.Operator.EQUALS);
-        }
+        expr = new BinaryExpr(new NameExpr("keyCode"), new NameExpr(CODED_KEYS[0]), BinaryExpr.Operator.EQUALS);
 
         // add the rest of them
         for (int i = 1; i < CODED_KEYS.length; i++) {
