@@ -163,6 +163,9 @@ public class ProcessingToP5Converter {
         // replace println() with print()
         cu.accept(new PrintlnToPrintVisitor(), null);
 
+        // rename mousePressed variable to mouseIsPressed and keyPressed to keyIsPressed
+        cu.accept(new RenameMouseAndKeyPressedVisitor(), null);
+
         // collect all of the calls to functions that load stuff
         // in JS, must be moved to the preload() function
         CollectLoadMethodsVisitor collectLoadMethodsVisitor = new CollectLoadMethodsVisitor();
