@@ -30,11 +30,12 @@ public class InitializationInSetupVisitorTest {
             });
         });
 
-        Assert.assertEquals(3, setupBody.getStatements().size());
+        Assert.assertEquals(4, setupBody.getStatements().size());
 
         checkAssignment("w", 3, setupBody.getStatement(0));
         checkAssignment("x", 7, setupBody.getStatement(1));
-        checkAssignment("z", 2, setupBody.getStatement(2));
+        checkAssignment("y", 0, setupBody.getStatement(2));
+        checkAssignment("z", 2, setupBody.getStatement(3));
     }
 
     private void checkAssignment(String name, int value, Statement statement) {
