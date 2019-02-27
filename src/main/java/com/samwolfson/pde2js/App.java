@@ -6,6 +6,7 @@ import spark.template.handlebars.HandlebarsTemplateEngine;
 
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,18 +53,19 @@ public class App {
                 return jsonResponse(true, null, "You need to paste in some code!", null);
             }
 
-            List<String> precompileErrors = ProgramChecker.precompileCheck(req.body());
+            String pdeCode = java.net.URLDecoder.decode(req.body(), StandardCharsets.UTF_8.name());
+
+            List<String> precompileErrors = ProgramChecker.precompileCheck(pdeCode);
             if (precompileErrors.isEmpty()) {
                 try {
 
-                    ProcessingToP5Converter converter = new ProcessingToP5Converter(req.body());
+                    ProcessingToP5Converter converter = new ProcessingToP5Converter(pdeCode);
                     String warnings = converter.getWarnings().stream().map(s -> " - " + s).collect(Collectors.joining("\n"));
 
                     return jsonResponse(false, converter.getJsCode(), null, String.join("\n", warnings));
 
                 } catch (ParseProblemException e) {
                     e.printStackTrace();
-
 
                     return jsonResponse(true, null,
                             String.join("\n", ProgramChecker.interpretParserErrors(e.getProblems())), null);

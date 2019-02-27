@@ -73,7 +73,7 @@
             $("#oops").val("");
             jsEditor.setValue("");
 
-            $.post('/convert', pdeCode, function(response) {
+            $.post('/convert', encodeURIComponent(pdeCode), function(response) {
                 $("#convertButton").prop('disabled', false);
 
                 if (response['hasErrors']) {

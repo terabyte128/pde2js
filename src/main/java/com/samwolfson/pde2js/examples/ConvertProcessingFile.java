@@ -1,5 +1,6 @@
 package com.samwolfson.pde2js.examples;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.samwolfson.pde2js.ProcessingToP5Converter;
 import spark.utils.IOUtils;
 
@@ -9,7 +10,7 @@ import java.io.IOException;
 public class ConvertProcessingFile {
     public static void main(String[] args) throws IOException {
         // read a file into a String
-        try (FileInputStream inputStream = new FileInputStream("./samples/null_characters.pde")) {
+        try (FileInputStream inputStream = new FileInputStream("./samples/student/creativity_guo/creativity_guo.pde")) {
             String content = IOUtils.toString(inputStream);
 
             // create a new instance of the converter
