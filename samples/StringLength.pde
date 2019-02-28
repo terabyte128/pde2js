@@ -7,5 +7,11 @@ void draw() {
 }
 
 int stringLength(String s) {
-  return s.length();
+  int l = s.length();
+
+  String s2;
+
+  boolean b = s == s2;
+
+  return s.equals(s2);
 }

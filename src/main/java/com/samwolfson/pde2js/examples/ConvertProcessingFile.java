@@ -10,7 +10,7 @@ import java.io.IOException;
 public class ConvertProcessingFile {
     public static void main(String[] args) throws IOException {
         // read a file into a String
-        try (FileInputStream inputStream = new FileInputStream("./samples/student/creativity_guo/creativity_guo.pde")) {
+        try (FileInputStream inputStream = new FileInputStream("./samples/Casting.pde")) {
             String content = IOUtils.toString(inputStream);
 
             // create a new instance of the converter

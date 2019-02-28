@@ -145,7 +145,7 @@ public class ProcessingToP5Converter {
         cu.accept(new SizeToCreateCanvasVisitor(), null);
 
         // replace .length() calls to .length member accesses
-        cu.accept(new StringLengthVisitor(), null);
+        cu.accept(new StringLengthAndEqualsVisitor(), null);
 
         // rename #{DIRECTION} to #{DIRECTION}_ARROW
         // and replace checks to key == CODED with calls to special function
@@ -165,6 +165,9 @@ public class ProcessingToP5Converter {
 
         // rename mousePressed variable to mouseIsPressed and keyPressed to keyIsPressed
         cu.accept(new RenameMouseAndKeyPressedVisitor(), null);
+
+        // change (int|float|boolean) casts to function calls
+        cu.accept(new CastingToFunctionCallVisitor(), null);
 
         // collect all of the calls to functions that load stuff
         // in JS, must be moved to the preload() function
